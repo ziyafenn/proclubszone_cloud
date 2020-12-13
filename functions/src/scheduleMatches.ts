@@ -4,7 +4,7 @@ import * as admin from "firebase-admin";
 export const scheduleMatches = functions.https.onCall((data, context) => {
   const firestore = admin.firestore();
 
-  const leagueId = "52Gt1trcnvRMCMfJdhgZ";
+  const leagueId = "italy";
   const matchesAgainst = 1;
   const acceptedClubs: string[] = [];
 
@@ -31,7 +31,7 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
     });
   };
 
-  const createMatches = () => {
+  const createMatches = async () => {
     const batch = firestore.batch();
 
     const teams: number = acceptedClubs.length;
@@ -59,7 +59,7 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
             const docRef = firestore
               .collection("leagues")
               .doc(leagueId)
-              .collection("matches2")
+              .collection("matches")
               .doc();
 
             batch.set(docRef, match);
@@ -67,12 +67,12 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
         }
       }
     }
-    batch.commit().catch((err) => {
+    await batch.commit().catch((err) => {
       console.log("something went wrong during batch commit:", err);
     });
   };
 
-  getTeams()
+  return getTeams()
     .then(() => createMatches())
     .then(
       () => {
