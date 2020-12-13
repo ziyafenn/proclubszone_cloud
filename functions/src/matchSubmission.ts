@@ -18,7 +18,7 @@ type Match = {
 };
 
 export const matchSubmission = functions.firestore
-  .document("leagues/{leagueId}/matches/{matchId}")
+  .document("leagues/{leagueId}/matches6/{matchId}")
   .onUpdate((change) => {
     const docRef = change.after.ref;
     const match: Match = change.after.data() as Match;

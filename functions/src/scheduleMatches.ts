@@ -1,12 +1,18 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import { ClubInt } from "./utils/interface";
+
+type ClubType = {
+  [clubId: string]: ClubInt;
+};
 
 export const scheduleMatches = functions.https.onCall((data, context) => {
   const firestore = admin.firestore();
-
+  const batch = firestore.batch();
   const leagueId = "italy";
   const matchesAgainst = 1;
-  const acceptedClubs: string[] = [];
+  const acceptedClubsIds: string[] = [];
+  const acceptedClubs: ClubType[] = [];
 
   interface Match {
     home: string;
@@ -25,16 +31,18 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
     await query.get().then((querySnapshot) => {
       querySnapshot.forEach((documentSnapshot) => {
         const clubId = documentSnapshot.id;
-        acceptedClubs.push(clubId);
-        console.log(acceptedClubs.length, acceptedClubs);
+        const clubData = documentSnapshot.data() as ClubInt;
+        const club: ClubType = {
+          [clubId]: clubData,
+        };
+        acceptedClubs.push(club);
+        acceptedClubsIds.push(clubId);
       });
     });
   };
 
-  const createMatches = async () => {
-    const batch = firestore.batch();
-
-    const teams: number = acceptedClubs.length;
+  const createMatches = () => {
+    const teams: number = acceptedClubsIds.length;
     const ids: number[] = Array.from({ length: teams * 3 }, (_, i) => i + 1);
 
     const matchIdGen = () => {
@@ -51,35 +59,71 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
         for (let at = 0; at < teams; at++) {
           if (at !== ht) {
             const match: Match = {
-              home: acceptedClubs[ht],
-              away: acceptedClubs[at],
+              home: acceptedClubsIds[ht],
+              away: acceptedClubsIds[at],
               id: matchIdGen(),
-              teams: [acceptedClubs[ht], acceptedClubs[at]],
+              teams: [acceptedClubsIds[ht], acceptedClubsIds[at]],
             };
-            const docRef = firestore
+            const matchRef = firestore
               .collection("leagues")
               .doc(leagueId)
-              .collection("matches")
+              .collection("matches6")
               .doc();
 
-            batch.set(docRef, match);
+            batch.set(matchRef, match);
           }
         }
       }
     }
-    await batch.commit().catch((err) => {
-      console.log("something went wrong during batch commit:", err);
+  };
+
+  const createStandings = () => {
+    type ClubStanding = {
+      [id: string]: {
+        name: string;
+        played: number;
+        won: number;
+        lost: number;
+        draw: number;
+        points: number;
+        scored: number;
+        conceded: number;
+      };
+    };
+
+    const standingsRef = firestore
+      .collection("leagues")
+      .doc(leagueId)
+      .collection("stats")
+      .doc("standings");
+
+    acceptedClubs.forEach((club) => {
+      const clubId = Object.keys(club)[0];
+      const clubStanding: ClubStanding = {
+        [clubId]: {
+          name: club[clubId].name,
+          played: 0,
+          won: 0,
+          lost: 0,
+          draw: 0,
+          points: 0,
+          scored: 0,
+          conceded: 0,
+        },
+      };
+      functions.logger.info(clubId);
+      functions.logger.info(club);
+      batch.set(standingsRef, clubStanding, { merge: true });
     });
   };
 
   return getTeams()
     .then(() => createMatches())
+    .then(() => createStandings())
     .then(
-      () => {
-        return "Matches are scheduled and leagues can start!";
-      },
-      (err) => {
-        console.log("function failed", err);
-      }
+      async () =>
+        await batch.commit().catch((err) => {
+          console.log("something went wrong during batch commit:", err);
+        })
     );
 });
