@@ -12,3 +12,16 @@ export interface ClubRosterMember {
   accepted: boolean;
   username: string;
 }
+
+export interface ClubStanding {
+  [id: string]: {
+    name: string;
+    played: number;
+    won: number;
+    lost: number;
+    draw: number;
+    points: number;
+    scored: number;
+    conceded: number;
+  };
+}

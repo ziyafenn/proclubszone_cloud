@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import { ClubInt } from "./utils/interface";
+import { ClubInt, ClubStanding } from "./utils/interface";
 
 type ClubType = {
   [clubId: string]: ClubInt;
@@ -78,19 +78,6 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
   };
 
   const createStandings = () => {
-    type ClubStanding = {
-      [id: string]: {
-        name: string;
-        played: number;
-        won: number;
-        lost: number;
-        draw: number;
-        points: number;
-        scored: number;
-        conceded: number;
-      };
-    };
-
     const standingsRef = firestore
       .collection("leagues")
       .doc(leagueId)
