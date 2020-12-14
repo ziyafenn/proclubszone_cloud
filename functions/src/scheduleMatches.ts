@@ -67,7 +67,7 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
             const matchRef = firestore
               .collection("leagues")
               .doc(leagueId)
-              .collection("matches6")
+              .collection("matches")
               .doc();
 
             batch.set(matchRef, match);
