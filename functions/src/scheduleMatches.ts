@@ -9,25 +9,25 @@ type ClubType = {
 export const scheduleMatches = functions.https.onCall((data, context) => {
   const firestore = admin.firestore();
   const batch = firestore.batch();
-  const leagueId = "italy";
+  const leagueId = data.leagueId;
   const matchesAgainst = 1;
   const acceptedClubsIds: string[] = [];
   const acceptedClubs: ClubType[] = [];
+  const leagueRef = firestore.collection("leagues").doc(leagueId);
 
   interface Match {
     home: string;
     away: string;
-    date?: string;
     id: number;
     teams: [string, string];
+    published: boolean;
+    conflict: boolean;
+    result?: {};
+    submission?: {};
   }
 
   const getTeams = async () => {
-    const query = firestore
-      .collection("leagues")
-      .doc(leagueId)
-      .collection("clubs")
-      .where("accepted", "==", true);
+    const query = leagueRef.collection("clubs").where("accepted", "==", true);
     await query.get().then((querySnapshot) => {
       querySnapshot.forEach((documentSnapshot) => {
         const clubId = documentSnapshot.id;
@@ -63,12 +63,10 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
               away: acceptedClubsIds[at],
               id: matchIdGen(),
               teams: [acceptedClubsIds[ht], acceptedClubsIds[at]],
+              published: false,
+              conflict: false,
             };
-            const matchRef = firestore
-              .collection("leagues")
-              .doc(leagueId)
-              .collection("matches")
-              .doc();
+            const matchRef = leagueRef.collection("matches").doc();
 
             batch.set(matchRef, match);
           }
@@ -78,11 +76,7 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
   };
 
   const createStandings = () => {
-    const standingsRef = firestore
-      .collection("leagues")
-      .doc(leagueId)
-      .collection("stats")
-      .doc("standings");
+    const standingsRef = leagueRef.collection("stats").doc("standings");
 
     acceptedClubs.forEach((club) => {
       const clubId = Object.keys(club)[0];
@@ -107,6 +101,11 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
   return getTeams()
     .then(() => createMatches())
     .then(() => createStandings())
+    .then(() => {
+      batch.update(leagueRef, {
+        scheduled: true,
+      });
+    })
     .then(
       async () =>
         await batch.commit().catch((err) => {

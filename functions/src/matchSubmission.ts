@@ -127,10 +127,18 @@ export const matchSubmission = functions.https.onCall(async (data) => {
       .catch((err) => logger.error(err));
   };
 
-  const submissionCorrect =
-    JSON.stringify(homeResult) === JSON.stringify(awayResult);
+  const submissionCorrect = () => {
+    if (
+      homeResult[homeTeam] === awayResult[homeTeam] &&
+      homeResult[awayTeam] === awayResult[awayTeam]
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  };
 
-  if (submissionCorrect) {
+  if (submissionCorrect()) {
     return updateStandings(homeResult)
       .then(() => {
         batch.update(matchRef, {
