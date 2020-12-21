@@ -46,9 +46,7 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
     const ids: number[] = Array.from({ length: teams * 3 }, (_, i) => i + 1);
 
     const matchIdGen = () => {
-      const randomIndex = Math.floor(
-        Math.random() * Math.floor(ids.length - 1)
-      );
+      const randomIndex = Math.floor(Math.random() * Math.floor(ids.length));
       const pickedId: number[] = ids.splice(randomIndex, 1);
 
       return pickedId[0];
