@@ -36,11 +36,11 @@ export interface MatchData {
   leagueId: string;
   manager: boolean;
   opponentName: string;
-  submissions: Submission;
+  submissions: {
+    [team: string]: Submission;
+  };
 }
 
 export interface Submission {
-  [team: string]: {
-    [team: string]: number;
-  };
+  [team: string]: number;
 }

@@ -1,20 +1,18 @@
-import { ClubStanding, MatchData } from "../utils/interface";
+import { ClubStanding, MatchData, Submission } from "../utils/interface";
 import * as admin from "firebase-admin";
 
-const updateStandings = async (data: MatchData): Promise<ClubStanding> => {
+const updateStandings = async (
+  data: MatchData,
+  result: Submission
+): Promise<ClubStanding> => {
   const firestore = admin.firestore();
   const leagueRef = firestore.collection("leagues").doc(data.leagueId);
   const standingsRef = leagueRef.collection("stats").doc("standings");
   let standings: ClubStanding;
   const homeTeam = data.home;
   const awayTeam = data.away;
-  const result = data.submissions[homeTeam];
   const awayResult = Number(result[awayTeam]);
   const homeResult = Number(result[homeTeam]);
-
-  console.log("updating standings", data);
-  console.log("home team", homeTeam);
-  console.log("result", result);
 
   const editStandings = () => {
     const homeTeamStanding = standings[homeTeam];
@@ -29,7 +27,7 @@ const updateStandings = async (data: MatchData): Promise<ClubStanding> => {
     const drawUpd = (team: ClubStanding[string]) => {
       return {
         draw: team.draw + 1,
-        points: team.draw + 1,
+        points: team.points + 1,
       };
     };
 
