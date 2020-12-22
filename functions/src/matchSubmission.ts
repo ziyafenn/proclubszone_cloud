@@ -32,7 +32,7 @@ export const matchSubmission = functions.https.onCall(
     };
 
     if (submissionCorrect()) {
-      updateStandings(match, homeResult)
+      return updateStandings(match, homeResult)
         .then((standings) => {
           batch.update(standingsRef, {
             [homeTeam]: standings[homeTeam],
@@ -45,21 +45,30 @@ export const matchSubmission = functions.https.onCall(
             result: homeResult,
           });
         })
-        .then(() => {
-          batch.commit().catch((err) => logger.error("commit error", err));
-        })
-        .then(() => {
-          return "All Good Bruh";
-        })
-        .catch((err) => {
-          logger.error(err, "Err from commit");
+        .then(async () => {
+          return batch
+            .commit()
+            .then(() => {
+              return "All Good Bruh";
+            })
+            .catch((err) => logger.error("commit error", err));
         });
     } else {
-      batch.update(matchRef, {
-        conflict: true,
-      });
-      return batch
-        .commit()
+      // batch.update(matchRef, {
+      //   conflict: true,
+      // });
+      // return batch
+      //   .commit()
+      //   .then(() => {
+      //     return "Match is set to conflict mode";
+      //   })
+      //   .catch((err) => {
+      //     logger.error(err, "Err from commit");
+      //   });
+      return matchRef
+        .update({
+          conflict: true,
+        })
         .then(() => {
           return "Match is set to conflict mode";
         })
