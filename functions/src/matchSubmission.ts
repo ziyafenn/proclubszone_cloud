@@ -54,21 +54,14 @@ export const matchSubmission = functions.https.onCall(
             .catch((err) => logger.error("commit error", err));
         });
     } else {
-      // batch.update(matchRef, {
-      //   conflict: true,
-      // });
-      // return batch
-      //   .commit()
-      //   .then(() => {
-      //     return "Match is set to conflict mode";
-      //   })
-      //   .catch((err) => {
-      //     logger.error(err, "Err from commit");
-      //   });
-      return matchRef
-        .update({
-          conflict: true,
-        })
+      batch.update(matchRef, {
+        conflict: true,
+      });
+      batch.update(leagueRef, {
+        conflictMatchesCount: admin.firestore.FieldValue.increment(1),
+      });
+      return batch
+        .commit()
         .then(() => {
           return "Match is set to conflict mode";
         })

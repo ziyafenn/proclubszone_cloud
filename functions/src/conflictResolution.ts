@@ -29,9 +29,12 @@ export const conflictResolution = functions.https.onCall(
           result: result,
           conflict: false,
         });
+        batch.update(leagueRef, {
+          conflictMatchesCount: admin.firestore.FieldValue.increment(-1),
+        });
       })
-      .then(() => {
-        batch.commit().catch((err) => logger.error("commit error", err));
+      .then(async () => {
+        await batch.commit().catch((err) => logger.error("commit error", err));
       })
       .then(() => {
         return "Conflict Resolved";
