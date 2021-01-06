@@ -26,12 +26,10 @@ export interface ClubStanding {
   };
 }
 
-export interface MatchData {
+export interface MatchData extends Match {
   matchId: string;
   leagueName: string;
   clubName: string;
-  home: string;
-  away: string;
   clubId: string;
   leagueId: string;
   manager: boolean;
@@ -39,6 +37,21 @@ export interface MatchData {
   submissions: {
     [team: string]: Submission;
   };
+}
+
+export interface Match {
+  awayTeamId: string;
+  homeTeamId: string;
+  id: number;
+  submissions?: {
+    [team: string]: {
+      [team: string]: number;
+    };
+  };
+  teams?: [string, string];
+  published: boolean;
+  conflict: boolean;
+  result?: { [team: string]: number };
 }
 
 export interface Submission {

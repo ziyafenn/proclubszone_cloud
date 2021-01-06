@@ -9,14 +9,14 @@ const updateStandings = async (
   const leagueRef = firestore.collection("leagues").doc(data.leagueId);
   const standingsRef = leagueRef.collection("stats").doc("standings");
   let standings: ClubStanding;
-  const homeTeam = data.home;
-  const awayTeam = data.away;
-  const awayResult = Number(result[awayTeam]);
-  const homeResult = Number(result[homeTeam]);
+  const homeTeamId = data.homeTeamId;
+  const awayTeamId = data.awayTeamId;
+  const awayResult = Number(result[awayTeamId]);
+  const homeResult = Number(result[homeTeamId]);
 
   const editStandings = () => {
-    const homeTeamStanding = standings[homeTeam];
-    const awayTeamStanding = standings[awayTeam];
+    const homeTeamStanding = standings[homeTeamId];
+    const awayTeamStanding = standings[awayTeamId];
 
     const winUpd = (team: ClubStanding[string]) => {
       return {
@@ -49,37 +49,37 @@ const updateStandings = async (
       scored: awayTeamStanding.scored + awayResult,
     };
 
-    if (result[homeTeam] > result[awayTeam]) {
-      standings[homeTeam] = {
+    if (result[homeTeamId] > result[awayTeamId]) {
+      standings[homeTeamId] = {
         ...homeTeamStanding,
         ...updateGamesGoalsHome,
         ...winUpd(homeTeamStanding),
       };
-      standings[awayTeam] = {
+      standings[awayTeamId] = {
         ...awayTeamStanding,
         ...updateGamesGoalsAway,
         ...defeatUpd(awayTeamStanding),
       };
     }
-    if (result[homeTeam] === result[awayTeam]) {
-      standings[homeTeam] = {
+    if (result[homeTeamId] === result[awayTeamId]) {
+      standings[homeTeamId] = {
         ...homeTeamStanding,
         ...updateGamesGoalsHome,
         ...drawUpd(homeTeamStanding),
       };
-      standings[awayTeam] = {
+      standings[awayTeamId] = {
         ...awayTeamStanding,
         ...updateGamesGoalsAway,
         ...drawUpd(awayTeamStanding),
       };
     }
-    if (result[homeTeam] < result[awayTeam]) {
-      standings[homeTeam] = {
+    if (result[homeTeamId] < result[awayTeamId]) {
+      standings[homeTeamId] = {
         ...homeTeamStanding,
         ...updateGamesGoalsHome,
         ...defeatUpd(homeTeamStanding),
       };
-      standings[awayTeam] = {
+      standings[awayTeamId] = {
         ...awayTeamStanding,
         ...updateGamesGoalsAway,
         ...winUpd(awayTeamStanding),

@@ -9,10 +9,10 @@ export const matchSubmission = functions.https.onCall(
   async ({ match }: { match: MatchData }) => {
     const firestore = admin.firestore();
     const submissions = match.submissions;
-    const homeTeam = match.home;
-    const awayTeam = match.away;
-    const homeResult = submissions[match.home];
-    const awayResult = submissions[match.away];
+    const homeTeamId = match.homeTeamId;
+    const awayTeamId = match.awayTeamId;
+    const homeResult = submissions[homeTeamId];
+    const awayResult = submissions[awayTeamId];
 
     const leagueRef = firestore.collection("leagues").doc(match.leagueId);
     const standingsRef = leagueRef.collection("stats").doc("standings");
@@ -22,8 +22,8 @@ export const matchSubmission = functions.https.onCall(
 
     const submissionCorrect = () => {
       if (
-        homeResult[homeTeam] === awayResult[homeTeam] &&
-        homeResult[awayTeam] === awayResult[awayTeam]
+        homeResult[homeTeamId] === awayResult[homeTeamId] &&
+        homeResult[awayTeamId] === awayResult[awayTeamId]
       ) {
         return true;
       } else {
@@ -35,8 +35,8 @@ export const matchSubmission = functions.https.onCall(
       return updateStandings(match, homeResult)
         .then((standings) => {
           batch.update(standingsRef, {
-            [homeTeam]: standings[homeTeam],
-            [awayTeam]: standings[awayTeam],
+            [homeTeamId]: standings[homeTeamId],
+            [awayTeamId]: standings[awayTeamId],
           });
         })
         .then(() => {

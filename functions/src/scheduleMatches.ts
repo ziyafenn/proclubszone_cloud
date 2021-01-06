@@ -1,12 +1,12 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import { ClubInt, ClubStanding } from "./utils/interface";
+import { ClubInt, ClubStanding, Match } from "./utils/interface";
 
 type ClubType = {
   [clubId: string]: ClubInt;
 };
 
-export const scheduleMatches = functions.https.onCall((data, context) => {
+export const scheduleMatches = functions.https.onCall(async (data, context) => {
   const firestore = admin.firestore();
   const batch = firestore.batch();
   const leagueId = data.leagueId;
@@ -14,17 +14,6 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
   const acceptedClubsIds: string[] = [];
   const acceptedClubs: ClubType[] = [];
   const leagueRef = firestore.collection("leagues").doc(leagueId);
-
-  interface Match {
-    home: string;
-    away: string;
-    id: number;
-    teams: [string, string];
-    published: boolean;
-    conflict: boolean;
-    result?: {};
-    submission?: {};
-  }
 
   const getTeams = async () => {
     const query = leagueRef.collection("clubs").where("accepted", "==", true);
@@ -57,8 +46,8 @@ export const scheduleMatches = functions.https.onCall((data, context) => {
         for (let at = 0; at < teams; at++) {
           if (at !== ht) {
             const match: Match = {
-              home: acceptedClubsIds[ht],
-              away: acceptedClubsIds[at],
+              homeTeamId: acceptedClubsIds[ht],
+              awayTeamId: acceptedClubsIds[at],
               id: matchIdGen(),
               teams: [acceptedClubsIds[ht], acceptedClubsIds[at]],
               published: false,

@@ -13,14 +13,14 @@ export const conflictResolution = functions.https.onCall(
     const standingsRef = leagueRef.collection("stats").doc("standings");
     const matchRef = leagueRef.collection("matches").doc(match.matchId);
 
-    const homeTeam = match.home;
-    const awayTeam = match.away;
+    const homeTeamId = match.homeTeamId;
+    const awayTeamId = match.awayTeamId;
 
     await updateStandings(match, result)
       .then((standings) => {
         batch.update(standingsRef, {
-          [homeTeam]: standings[homeTeam],
-          [awayTeam]: standings[awayTeam],
+          [homeTeamId]: standings[homeTeamId],
+          [awayTeamId]: standings[awayTeamId],
         });
       })
       .then(() => {
