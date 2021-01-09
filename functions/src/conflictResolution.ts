@@ -16,7 +16,7 @@ export const conflictResolution = functions.https.onCall(
     const homeTeamId = match.homeTeamId;
     const awayTeamId = match.awayTeamId;
 
-    await updateStandings(match, result)
+    return updateStandings(match, result)
       .then((standings) => {
         batch.update(standingsRef, {
           [homeTeamId]: standings[homeTeamId],

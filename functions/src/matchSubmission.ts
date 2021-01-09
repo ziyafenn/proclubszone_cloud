@@ -49,7 +49,7 @@ export const matchSubmission = functions.https.onCall(
           return batch
             .commit()
             .then(() => {
-              return "All Good Bruh";
+              return "Success";
             })
             .catch((err) => logger.error("commit error", err));
         });
@@ -63,7 +63,7 @@ export const matchSubmission = functions.https.onCall(
       return batch
         .commit()
         .then(() => {
-          return "Match is set to conflict mode";
+          return "Conflict";
         })
         .catch((err) => {
           logger.error(err, "Err from commit");
