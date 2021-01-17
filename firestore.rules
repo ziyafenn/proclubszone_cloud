@@ -45,6 +45,14 @@ service cloud.firestore {
       match /stats/{document=**} {
         allow write: if false;
       }
+      // Matches
+      match /matches/{matchId} {
+        allow update: if request.auth != null 
+        && resource.data.published == false 
+        && resource.data.conflict == false 
+        && (request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['submissions']))
+      }
     }
 
   }
