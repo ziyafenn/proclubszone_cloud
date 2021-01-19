@@ -11,8 +11,9 @@ module.exports = {
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    project: "./functions/tsconfig.json",
+    project: "./tsconfig.json",
     // tsconfigRootDir: "/users/zia/dev/proclubszone/cloud/functions",
+    tsconfigRootDir: __dirname,
     sourceType: "module",
   },
   plugins: ["@typescript-eslint", "import"],

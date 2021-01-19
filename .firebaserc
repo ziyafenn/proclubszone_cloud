@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "pro-clubs-zone-v2"
+    "default": "pro-clubs-zone-v2",
+    "prz-dev": "pro-clubs-zone-dev"
   }
 }
