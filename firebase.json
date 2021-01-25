@@ -11,12 +11,11 @@
   },
   "hosting": {
     "public": "public",
+    "appAssociation": "AUTO",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
+      { "source": "/lgu/**", "dynamicLinks": true },
+      { "source": "/eml/**", "dynamicLinks": true }
     ]
   },
   "storage": {
