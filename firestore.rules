@@ -14,10 +14,10 @@ service cloud.firestore {
       allow update: if request.auth != null && request.auth.uid == userId;
       // allow league admins and club manager to make updates
       allow update: if request.auth != null 
-      && request.resource.data.leagues.keys() != []
-      &&  resource.data.leagues.keys().hasAll(leagueId())
-      && (request.resource.data.leagues.diff(resource.data.leagues).affectedKeys()
-        .hasAll(leagueId()));
+    //  && request.resource.data.leagues.keys() != []
+    //  &&  resource.data.leagues.keys().hasAll(leagueId());
+     //FIXME && (request.resource.data.leagues.diff(resource.data.leagues).affectedKeys()
+      //  .hasAll(leagueId()));
     }
 
   // League
