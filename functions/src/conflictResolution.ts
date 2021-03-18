@@ -6,7 +6,15 @@ import updateStandings from "./actions/updateStandings";
 const logger = functions.logger;
 
 export const conflictResolution = functions.https.onCall(
-  async ({ match, result }: { match: MatchData; result: Submission }) => {
+  async ({
+    match,
+    result,
+    conflict = false,
+  }: {
+    match: MatchData;
+    result: Submission;
+    conflict: boolean;
+  }) => {
     const firestore = admin.firestore();
     const batch = firestore.batch();
     const leagueRef = firestore.collection("leagues").doc(match.leagueId);
@@ -29,15 +37,17 @@ export const conflictResolution = functions.https.onCall(
           result: result,
           conflict: false,
         });
-        batch.update(leagueRef, {
-          conflictMatchesCount: admin.firestore.FieldValue.increment(-1),
-        });
+        if (conflict) {
+          batch.update(leagueRef, {
+            conflictMatchesCount: admin.firestore.FieldValue.increment(-1),
+          });
+        }
       })
       .then(async () => {
         await batch.commit().catch((err) => logger.error("commit error", err));
       })
       .then(() => {
-        return "Conflict Resolved";
+        return conflict ? "Conflict Resolved" : "Match Resolved";
       })
       .catch((err) => {
         logger.error(err, "Err from commit");
