@@ -119,6 +119,8 @@ export const scheduleMatches = functions.https.onCall(
         batch.update(leagueRef, {
           scheduled: true,
         });
+        const playerStatsRef = leagueRef.collection("stats").doc("players");
+        batch.create(playerStatsRef, {});
       })
       .then(
         async () =>

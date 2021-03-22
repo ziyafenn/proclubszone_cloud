@@ -2,14 +2,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    match /{document=**} {
-      allow read: if true;
-    }
+    // match /{document=**} {
+    //   allow read: if true;
+    // }
     // Users
     match /users/{userId} {
      function leagueId() {
     	return request.resource.data.leagues.keys();
     }
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
       allow update: if request.auth != null && request.auth.uid == userId;
       // allow league admins and club manager to make updates
@@ -29,12 +30,14 @@ service cloud.firestore {
     function isNotScheduled() {
       return get(/databases/$(database)/documents/leagues/$(leagueId)).data.scheduled == false
     }
+      allow read: if true;
       allow create: if request.auth != null;
       allow update, delete: if isAdmin();
       allow update: if request.auth != null && (request.resource.data.diff(resource.data).affectedKeys()
         .hasOnly(['acceptedClubs']));
       // Club
       match /clubs/{clubId} {
+        allow read: if true;
         allow create: if request.auth != null && isNotScheduled()
         allow update: if request.auth != null && request.auth.uid == resource.data.managerId || isAdmin()
         allow delete: if request.auth != null && request.auth.uid == resource.data.managerId && isNotScheduled()
@@ -43,19 +46,31 @@ service cloud.firestore {
         allow update: if request.auth != null && (request.resource.data.diff(resource.data).affectedKeys()
         .hasOnly(['roster']));
       }
-      // Stats
-      match /stats/{document=**} {
+      // Standings
+      match /stats/standings {
         allow write: if false;
+        allow read: if request.auth != null;
+      }
+      // Player Total Stats
+      match /stats/players {
+        allow write: if request.auth != null;
+         allow read: if request.auth != null;
+      }
+      // Player Match Stats
+      match /stats/players/playerMatches/{playerId} {
+        allow write: if request.auth != null;
+         allow read: if request.auth != null;
       }
       // Matches
       match /matches/{matchId} {
+        allow read: if request.auth != null ;
         allow update: if request.auth != null 
         && resource.data.published == false 
         && resource.data.conflict == false 
         && (request.resource.data.diff(resource.data).affectedKeys()
         .hasOnly(['submissions']))
+         allow read: if request.auth != null;
       }
     }
-
   }
 }
