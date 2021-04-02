@@ -78,6 +78,7 @@ export const scheduleMatches = functions.https.onCall(
               ],
               published: false,
               conflict: false,
+              motmConflict: false,
             };
 
             console.log("match", match);

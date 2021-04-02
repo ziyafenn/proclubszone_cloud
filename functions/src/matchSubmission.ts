@@ -12,8 +12,8 @@ export const matchSubmission = functions.https.onCall(
     const motmSubmssions = match.motmSubmissions;
     const homeTeamId = match.homeTeamId;
     const awayTeamId = match.awayTeamId;
-    const homeResult = submissions[homeTeamId];
-    const awayResult = submissions[awayTeamId];
+    const homeResult = submissions![homeTeamId];
+    const awayResult = submissions![awayTeamId];
 
     const leagueRef = firestore.collection("leagues").doc(match.leagueId);
     const standingsRef = leagueRef.collection("stats").doc("standings");
@@ -34,7 +34,7 @@ export const matchSubmission = functions.https.onCall(
     };
 
     const motmSubmissionCorrect = () => {
-      if (Object.keys(motmSubmssions).length > 1) {
+      if (motmSubmssions && Object.keys(motmSubmssions).length > 1) {
         return false;
       } else {
         return true;
