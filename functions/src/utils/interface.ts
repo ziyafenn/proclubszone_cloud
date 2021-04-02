@@ -37,6 +37,9 @@ export interface MatchData extends Match {
   submissions: {
     [team: string]: Submission;
   };
+  motmSubmissions: {
+    [team: string]: string;
+  };
 }
 
 export interface Match {

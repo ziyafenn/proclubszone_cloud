@@ -9,6 +9,7 @@ export const matchSubmission = functions.https.onCall(
   async ({ match }: { match: MatchData }) => {
     const firestore = admin.firestore();
     const submissions = match.submissions;
+    const motmSubmssions = match.motmSubmissions;
     const homeTeamId = match.homeTeamId;
     const awayTeamId = match.awayTeamId;
     const homeResult = submissions[homeTeamId];
@@ -17,6 +18,7 @@ export const matchSubmission = functions.https.onCall(
     const leagueRef = firestore.collection("leagues").doc(match.leagueId);
     const standingsRef = leagueRef.collection("stats").doc("standings");
     const matchRef = leagueRef.collection("matches").doc(match.matchId);
+    const totalStatsRef = leagueRef.collection("stats").doc("players");
 
     const batch = firestore.batch();
 
@@ -31,43 +33,76 @@ export const matchSubmission = functions.https.onCall(
       }
     };
 
-    if (submissionCorrect()) {
-      return updateStandings(match, homeResult)
-        .then((standings) => {
-          batch.update(standingsRef, {
-            [homeTeamId]: standings[homeTeamId],
-            [awayTeamId]: standings[awayTeamId],
-          });
-        })
-        .then(() => {
-          batch.update(matchRef, {
-            published: true,
-            result: homeResult,
-          });
-        })
-        .then(async () => {
-          return batch
-            .commit()
-            .then(() => {
-              return "Success";
-            })
-            .catch((err) => logger.error("commit error", err));
+    const motmSubmissionCorrect = () => {
+      if (Object.keys(motmSubmssions).length > 1) {
+        return false;
+      } else {
+        return true;
+      }
+    };
+
+    if (submissionCorrect() && motmSubmissionCorrect()) {
+      try {
+        const standings = await updateStandings(match, homeResult);
+        batch.update(standingsRef, {
+          [homeTeamId]: standings[homeTeamId],
+          [awayTeamId]: standings[awayTeamId],
         });
+        batch.update(matchRef, {
+          published: true,
+          result: homeResult,
+          motm: motmSubmssions ? Object.values(motmSubmssions)[0] : null,
+        });
+
+        if (motmSubmssions) {
+          const playerId = Object.values(motmSubmssions)[0];
+          logger.info("found submissions", playerId);
+
+          const matchStatsRef = totalStatsRef
+            .collection("playerMatches")
+            .doc(playerId);
+
+          batch.set(
+            matchStatsRef,
+            {
+              [match.matchId]: {
+                motm: true,
+              },
+            },
+            { merge: true }
+          );
+          batch.set(
+            totalStatsRef,
+            {
+              [playerId]: {
+                motm: admin.firestore.FieldValue.increment(1),
+              },
+            },
+            { merge: true }
+          );
+        }
+
+        await batch.commit();
+        return "Success";
+      } catch (error) {
+        logger.error("commit error", error);
+        throw new Error("Submission commit error");
+      }
     } else {
       batch.update(matchRef, {
-        conflict: true,
+        conflict: submissionCorrect() ? false : true,
+        motmConflict: motmSubmissionCorrect() ? false : true,
       });
       batch.update(leagueRef, {
         conflictMatchesCount: admin.firestore.FieldValue.increment(1),
       });
-      return batch
-        .commit()
-        .then(() => {
-          return "Conflict";
-        })
-        .catch((err) => {
-          logger.error(err, "Err from commit");
-        });
+      try {
+        await batch.commit();
+        return "Conflict";
+      } catch (error) {
+        logger.error("Conflict commit error", error);
+        throw new Error("Conflict commit error");
+      }
     }
   }
 );
