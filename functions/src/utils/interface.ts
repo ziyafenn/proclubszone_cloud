@@ -1,3 +1,46 @@
+export interface CommonPlayerStats {
+  rating: any;
+  assists: any;
+  completedShortPasses: any;
+  completedMediumPasses: any;
+  completedLongPasses: any;
+  failedShortPasses: any;
+  failedMediumPasses: any;
+  failedLongPasses: any;
+  keyPasses: any;
+  successfulCrosses: any;
+  failedCrosses: any;
+  interceptions: any;
+  blocks: any;
+  outOfPosition: any;
+  possessionWon: any;
+  possessionLost: any;
+  clearances: any;
+  headersWon: any;
+  heardersLost: any;
+}
+
+export interface GoalkeeperStats extends CommonPlayerStats {
+  goalsConceded: any;
+  shotsCaught: any;
+  shotsParried: any;
+  crossesCaught: any;
+  ballsStriped: any;
+}
+
+export interface OutfieldPlayerStats extends CommonPlayerStats {
+  goals: any;
+  shotsOnTarget: any;
+  shotsOffTarget: any;
+  keyDribbles: any;
+  fouled: any;
+  successfulDribbles: any;
+  wonTackles: any;
+  lostTackles: any;
+  fouls: any;
+  penaltiesConceded: any;
+}
+
 export interface ClubInt {
   name: string;
   managerId: string;

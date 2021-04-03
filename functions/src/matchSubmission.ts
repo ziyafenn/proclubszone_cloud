@@ -66,7 +66,7 @@ export const matchSubmission = functions.https.onCall(
             matchStatsRef,
             {
               [match.matchId]: {
-                motm: true,
+                motm: 1,
               },
             },
             { merge: true }
