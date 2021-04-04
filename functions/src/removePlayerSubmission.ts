@@ -46,7 +46,10 @@ export const removePlayerSubmission = functions.https.onCall(
       batch.set(
         totalStatsRef,
         {
-          [playerID.slice(0, -9)]: statsUpdate,
+          [playerID.slice(0, -9)]: {
+            ...statsUpdate,
+            matches: admin.firestore.FieldValue.increment(-1),
+          },
         },
         { merge: true }
       );
@@ -57,7 +60,6 @@ export const removePlayerSubmission = functions.https.onCall(
 
       const storagePath = `${leagueID}/${matchID}/${clubID}/performance/${playerID}`;
       await Promise.all([bucket.file(storagePath).delete(), batch.commit()]);
-      return true;
     } catch (error) {
       console.log(error);
       throw new Error(error);
