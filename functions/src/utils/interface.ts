@@ -79,6 +79,16 @@ export interface MatchData extends Match {
   opponentName: string;
 }
 
+export interface MatchPlayerData {
+  [id: string]: {
+    submitted: boolean;
+    clubId: string;
+    username: string;
+    motm: boolean;
+    club: string;
+  };
+}
+
 export interface Match {
   awayTeamId: string;
   homeTeamId: string;
@@ -95,6 +105,7 @@ export interface Match {
   motmConflict: boolean;
   result?: { [team: string]: number };
   motm?: string;
+  players?: MatchPlayerData;
 }
 
 export interface Submission {

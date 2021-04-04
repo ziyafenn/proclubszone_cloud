@@ -9,7 +9,7 @@ export const matchSubmission = functions.https.onCall(
   async ({ match }: { match: MatchData }) => {
     const firestore = admin.firestore();
     const submissions = match.submissions;
-    const motmSubmssions = match.motmSubmissions;
+    const motmSubmissions = match.motmSubmissions;
     const homeTeamId = match.homeTeamId;
     const awayTeamId = match.awayTeamId;
     const homeResult = submissions![homeTeamId];
@@ -34,7 +34,7 @@ export const matchSubmission = functions.https.onCall(
     };
 
     const motmSubmissionCorrect = () => {
-      if (motmSubmssions && Object.keys(motmSubmssions).length > 1) {
+      if (motmSubmissions && Object.keys(motmSubmissions).length > 1) {
         return false;
       } else {
         return true;
@@ -51,11 +51,11 @@ export const matchSubmission = functions.https.onCall(
         batch.update(matchRef, {
           published: true,
           result: homeResult,
-          motm: motmSubmssions ? Object.values(motmSubmssions)[0] : null,
+          motm: motmSubmissions ? Object.values(motmSubmissions)[0] : null,
         });
 
-        if (motmSubmssions) {
-          const playerId = Object.values(motmSubmssions)[0];
+        if (motmSubmissions) {
+          const playerId = Object.values(motmSubmissions)[0];
           logger.info("found submissions", playerId);
 
           const matchStatsRef = totalStatsRef

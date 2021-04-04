@@ -24,6 +24,7 @@ export const conflictResolution = functions.https.onCall(
 
     const homeTeamId = match.homeTeamId;
     const awayTeamId = match.awayTeamId;
+    const motmSubmissions = match.motmSubmissions;
     let result: Submission;
 
     if (adminResolution) {
@@ -51,32 +52,35 @@ export const conflictResolution = functions.https.onCall(
         motmConflict: false,
       };
 
-      if (match.motmConflict) {
-        const playerID = match.motmSubmissions![selectedTeam];
-        const matchStatsRef = totalStatsRef
-          .collection("playerMatches")
-          .doc(playerID);
+      if (motmSubmissions) {
+        let motmPlayerID = motmSubmissions[selectedTeam];
+        if (match.motmConflict) {
+          const matchStatsRef = totalStatsRef
+            .collection("playerMatches")
+            .doc(motmPlayerID);
 
-        batch.set(
-          matchStatsRef,
-          {
-            [match.matchId]: {
-              motm: true,
+          batch.set(
+            matchStatsRef,
+            {
+              [match.matchId]: {
+                motm: 1,
+              },
             },
-          },
-          { merge: true }
-        );
-        batch.set(
-          totalStatsRef,
-          {
-            [playerID]: {
-              motm: admin.firestore.FieldValue.increment(1),
+            { merge: true }
+          );
+          batch.set(
+            totalStatsRef,
+            {
+              [motmPlayerID]: {
+                motm: admin.firestore.FieldValue.increment(1),
+              },
             },
-          },
-          { merge: true }
-        );
-
-        submissionData.motm = playerID;
+            { merge: true }
+          );
+        } else {
+          motmPlayerID = Object.values(motmSubmissions)[0];
+        }
+        submissionData.motm = motmPlayerID;
       }
 
       batch.update(matchRef, submissionData);
