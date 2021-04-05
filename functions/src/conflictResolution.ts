@@ -53,34 +53,36 @@ export const conflictResolution = functions.https.onCall(
       };
 
       if (motmSubmissions) {
-        let motmPlayerID = motmSubmissions[selectedTeam];
+        let motmPlayerID: string;
         if (match.motmConflict) {
-          const matchStatsRef = totalStatsRef
-            .collection("playerMatches")
-            .doc(motmPlayerID);
-
-          batch.set(
-            matchStatsRef,
-            {
-              [match.matchId]: {
-                motm: 1,
-              },
-            },
-            { merge: true }
-          );
-          batch.set(
-            totalStatsRef,
-            {
-              [motmPlayerID]: {
-                motm: admin.firestore.FieldValue.increment(1),
-              },
-            },
-            { merge: true }
-          );
+          motmPlayerID = motmSubmissions[selectedTeam];
         } else {
           motmPlayerID = Object.values(motmSubmissions)[0];
         }
         submissionData.motm = motmPlayerID;
+
+        const matchStatsRef = totalStatsRef
+          .collection("playerMatches")
+          .doc(motmPlayerID);
+
+        batch.set(
+          matchStatsRef,
+          {
+            [match.matchId]: {
+              motm: 1,
+            },
+          },
+          { merge: true }
+        );
+        batch.set(
+          totalStatsRef,
+          {
+            [motmPlayerID]: {
+              motm: admin.firestore.FieldValue.increment(1),
+            },
+          },
+          { merge: true }
+        );
       }
 
       batch.update(matchRef, submissionData);

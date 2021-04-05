@@ -12,8 +12,12 @@ type Props = {
 export const removePlayerSubmission = functions.https.onCall(
   async ({ leagueID, matchID, clubID, playerID }: Props) => {
     const firestore = admin.firestore();
-    const bucket = admin.storage().bucket();
+    let bucket = admin.storage().bucket();
     const batch = firestore.batch();
+
+    if (process.env.GCLOUD_PROJECT !== "pro-clubs-zone-dev") {
+      bucket = admin.storage().bucket("prz-screen-shots");
+    }
 
     const leagueRef = firestore.collection("leagues").doc(leagueID);
     const totalStatsRef = leagueRef.collection("stats").doc("players");
