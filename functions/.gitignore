@@ -15,6 +15,4 @@ node_modules/
 keys/
 
 # Except utils
-
-!/src/utils
-!utils
+!src/utils/fixture-generator/*.js
