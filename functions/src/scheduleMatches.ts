@@ -1,6 +1,9 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import { ClubInt, ClubStanding, Match } from "./utils/interface";
+import { ClubInt, Match, ClubStanding } from "./utils/interface";
+// @ts-ignore
+import { generateRandomFixtureFromAllPermutations } from "./utils/fixture-generator/fixtureGenerator.js";
+// const util = require("util");
 
 type ClubProps = {
   [clubId: string]: ClubInt;
@@ -37,57 +40,34 @@ export const scheduleMatches = functions.https.onCall(
     };
 
     const createMatches = () => {
-      const teams: number = acceptedClubsIds.length;
-      const matchesPerTeam = teams * matchesAgainst - matchesAgainst;
-      const totalMatches = (matchesPerTeam * teams) / 2;
-      const ids: number[] = Array.from(
-        { length: totalMatches },
-        (_, i) => i + 1
+      let matchId = 1;
+
+      const rounds = generateRandomFixtureFromAllPermutations(
+        acceptedClubsIds,
+        matchesAgainst
       );
+      rounds.forEach((round) => {
+        round.forEach((matchday) => {
+          matchday.value.forEach(
+            (teams: { homeTeamId: string; awayTeamId: string }) => {
+              const match: Match = {
+                homeTeamId: teams.homeTeamId,
+                awayTeamId: teams.awayTeamId,
+                id: matchId,
+                teams: [teams.homeTeamId, teams.awayTeamId],
+                published: false,
+                conflict: false,
+                motmConflict: false,
+              };
 
-      const matchIdGen = () => {
-        const randomIndex = Math.floor(Math.random() * Math.floor(ids.length));
-        const pickedId: number[] = ids.splice(randomIndex, 1);
+              const matchRef = leagueRef.collection("matches").doc();
+              batch.set(matchRef, match);
 
-        return pickedId[0];
-      };
-
-      for (let round = 0; round < matchesAgainst; round++) {
-        for (
-          let firstTeamIndex = 0;
-          firstTeamIndex < teams - 1;
-          firstTeamIndex++
-        ) {
-          for (
-            let secondTeamIndex = firstTeamIndex + 1;
-            secondTeamIndex < teams;
-            secondTeamIndex++
-          ) {
-            const firstTeamHome =
-              round % 2 === 0 ? firstTeamIndex : secondTeamIndex;
-            const firstTeamAway =
-              round % 2 === 0 ? secondTeamIndex : firstTeamIndex;
-
-            const match: Match = {
-              homeTeamId: acceptedClubsIds[firstTeamHome],
-              awayTeamId: acceptedClubsIds[firstTeamAway],
-              id: matchIdGen(),
-              teams: [
-                acceptedClubsIds[firstTeamIndex],
-                acceptedClubsIds[secondTeamIndex],
-              ],
-              published: false,
-              conflict: false,
-              motmConflict: false,
-            };
-
-            console.log("match", match);
-
-            const matchRef = leagueRef.collection("matches").doc();
-            batch.set(matchRef, match);
-          }
-        }
-      }
+              matchId++;
+            }
+          );
+        });
+      });
     };
 
     const createStandings = () => {
@@ -113,21 +93,21 @@ export const scheduleMatches = functions.https.onCall(
       });
     };
 
-    return getTeams()
-      .then(() => createMatches())
-      .then(() => createStandings())
-      .then(() => {
-        batch.update(leagueRef, {
-          scheduled: true,
-        });
-        const playerStatsRef = leagueRef.collection("stats").doc("players");
-        batch.create(playerStatsRef, {});
-      })
-      .then(
-        async () =>
-          await batch.commit().catch((err) => {
-            console.log("something went wrong during batch commit:", err);
-          })
-      );
+    try {
+      await getTeams();
+      createMatches();
+      createStandings();
+
+      batch.update(leagueRef, {
+        scheduled: true,
+      });
+
+      const playerStatsRef = leagueRef.collection("stats").doc("players");
+      batch.create(playerStatsRef, {});
+
+      return await batch.commit();
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 );
