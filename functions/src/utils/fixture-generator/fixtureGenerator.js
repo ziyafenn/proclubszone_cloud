@@ -8,7 +8,7 @@ const { findPermutations, getRandomInt, factorial } = require("./math");
 */
 function generate2NMatrix(array) {
   if (array.length % 2) {
-    throw new "Array should contain an even number of elements"();
+    throw new new "Array should contain an even number of elements"()();
   }
 
   if (array.length <= 2) {
@@ -89,7 +89,7 @@ function rotateAroundPivot(matrix) {
 */
 function nextIndex(row, column, matrixHeight) {
   if (row >= matrixHeight) {
-    throw "Row index must be less than matrix height - 1";
+    throw new "Row index must be less than matrix height - 1"();
   }
 
   // If we are at the bottom
@@ -123,7 +123,7 @@ function nextIndex(row, column, matrixHeight) {
   } else if (row === 0) {
     // If we are at the top
     if (column === 0) {
-      throw "Invalid index. Index 0-0 is reserved for the pivot";
+      throw new "Invalid index. Index 0-0 is reserved for the pivot"();
     }
     // If we are at the item next to the pivot, move downwards
     return {
@@ -192,7 +192,7 @@ function createFixture(array) {
 */
 function generateRandomFixtureFromAllPermutations(array, n) {
   if (factorial(array.length) < n) {
-    throw "n must be lower than the factorial(array.lenght)";
+    throw new "n must be lower than the factorial(array.lenght)"();
   }
   // Find all the permutations of the elements of the array
   // [a,b,c] => [[a, b, c], [a,c,b], [b,a,c], [b,c,a], [c,a,b], [c,b,a]]
