@@ -2,8 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { ClubInt, Match, ClubStanding } from "./utils/interface";
 // @ts-ignore
-import { generateRandomFixtureFromAllPermutations } from "./utils/fixture-generator/fixtureGenerator.js";
-// const util = require("util");
+import generator from "tournament-generator";
 
 type ClubProps = {
   [clubId: string]: ClubInt;
@@ -19,7 +18,7 @@ export const scheduleMatches = functions.https.onCall(
     const firestore = admin.firestore();
     const batch = firestore.batch();
     const leagueId: string = data.leagueId;
-    const matchesAgainst = data.matchNum;
+    //   const matchesAgainst = data.matchNum;
     const acceptedClubsIds: string[] = [];
     const acceptedClubs: ClubProps[] = [];
     const leagueRef = firestore.collection("leagues").doc(leagueId);
@@ -41,32 +40,25 @@ export const scheduleMatches = functions.https.onCall(
 
     const createMatches = () => {
       let matchId = 1;
+      const { data: games } = generator(acceptedClubsIds, {
+        type: "double-round",
+      });
 
-      const rounds = generateRandomFixtureFromAllPermutations(
-        acceptedClubsIds,
-        matchesAgainst
-      );
-      rounds.forEach((round) => {
-        round.forEach((matchday) => {
-          matchday.value.forEach(
-            (teams: { homeTeamId: string; awayTeamId: string }) => {
-              const match: Match = {
-                homeTeamId: teams.homeTeamId,
-                awayTeamId: teams.awayTeamId,
-                id: matchId,
-                teams: [teams.homeTeamId, teams.awayTeamId],
-                published: false,
-                conflict: false,
-                motmConflict: false,
-              };
+      games.forEach((game: { homeTeam: string; awayTeam: string }) => {
+        const match: Match = {
+          homeTeamId: game.homeTeam,
+          awayTeamId: game.awayTeam,
+          id: matchId,
+          teams: [game.homeTeam, game.awayTeam],
+          published: false,
+          conflict: false,
+          motmConflict: false,
+        };
 
-              const matchRef = leagueRef.collection("matches").doc();
-              batch.set(matchRef, match);
+        const matchRef = leagueRef.collection("matches").doc();
+        batch.set(matchRef, match);
 
-              matchId++;
-            }
-          );
-        });
+        matchId++;
       });
     };
 
