@@ -18,7 +18,6 @@ export const scheduleMatches = functions.https.onCall(
     const firestore = admin.firestore();
     const batch = firestore.batch();
     const leagueId: string = data.leagueId;
-    //   const matchesAgainst = data.matchNum;
     const acceptedClubsIds: string[] = [];
     const acceptedClubs: ClubProps[] = [];
     const leagueRef = firestore.collection("leagues").doc(leagueId);
@@ -39,9 +38,10 @@ export const scheduleMatches = functions.https.onCall(
     };
 
     const createMatches = () => {
+      const rounds = data.matchNum === 1 ? "single-round" : "double-round";
       let matchId = 1;
       const { data: games } = generator(acceptedClubsIds, {
-        type: "double-round",
+        type: rounds,
       });
 
       games.forEach((game: { homeTeam: string; awayTeam: string }) => {
