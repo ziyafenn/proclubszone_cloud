@@ -38,17 +38,18 @@ service cloud.firestore {
       // Club
       match /clubs/{clubId} {
         allow read: if true;
-        allow create: if request.auth != null && isNotScheduled()
+        allow create: if request.auth != null 
+        //&& isNotScheduled()
         allow update: if request.auth != null && request.auth.uid == resource.data.managerId || isAdmin()
         allow delete: if request.auth != null && request.auth.uid == resource.data.managerId && isNotScheduled()
-        allow delete: if isAdmin() && isNotScheduled()
+        allow delete: if isAdmin() 
+        //&& isNotScheduled()
         // allow player to create entry in the club's roster
         allow update: if request.auth != null && (request.resource.data.diff(resource.data).affectedKeys()
         .hasOnly(['roster']));
       }
       // Standings
       match /stats/standings {
-        allow write: if false;
         allow read: if request.auth != null;
       }
       // Player Total Stats
@@ -63,10 +64,10 @@ service cloud.firestore {
       }
       // Matches
       match /matches/{matchId} {
-        allow read: if request.auth != null ;
+        allow read: if request.auth != null;
         allow update: if request.auth != null 
-//        && resource.data.published == false 
-        && resource.data.conflict == false 
+    //    && resource.data.published == false 
+        && resource.data.conflict == false;
         // && (request.resource.data.diff(resource.data).affectedKeys()
         // .hasOnly(['submissions', 'players', 'motmSubmissions']))
       }

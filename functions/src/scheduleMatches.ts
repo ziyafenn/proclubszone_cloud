@@ -53,6 +53,7 @@ export const scheduleMatches = functions.https.onCall(
           published: false,
           conflict: false,
           motmConflict: false,
+          submissionCount: 0,
         };
 
         const matchRef = leagueRef.collection("matches").doc();

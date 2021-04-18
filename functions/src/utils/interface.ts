@@ -104,6 +104,7 @@ export interface Match {
   result?: { [team: string]: number };
   motm?: string;
   players?: { [id: string]: MatchPlayerData };
+  submissionCount: number;
 }
 
 export interface Submission {
