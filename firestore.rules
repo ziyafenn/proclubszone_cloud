@@ -51,6 +51,7 @@ service cloud.firestore {
       // Standings
       match /stats/standings {
         allow read: if request.auth != null;
+        allow update: if isAdmin();
       }
       // Player Total Stats
       match /stats/players {
