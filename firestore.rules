@@ -24,7 +24,10 @@ service cloud.firestore {
   // League
     match /leagues/{leagueId} {
       function isAdmin() {
-        return request.auth != null && get(/databases/$(database)/documents/leagues/$(leagueId)).data.adminId == request.auth.uid;
+        return request.auth != null && get(/databases/$(database)/documents/leagues/$(leagueId)).data.admins[request.auth.uid] != null;
+    }
+      function isOwner() {
+        return request.auth != null && get(/databases/$(database)/documents/leagues/$(leagueId)).data.ownerId == request.auth.uid;
     }
 
     function isNotScheduled() {
@@ -32,7 +35,8 @@ service cloud.firestore {
     }
       allow read: if true;
       allow create: if request.auth != null;
-      allow update, delete: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isOwner();
       allow update: if request.auth != null && (request.resource.data.diff(resource.data).affectedKeys()
         .hasOnly(['acceptedClubs']));
       // Club

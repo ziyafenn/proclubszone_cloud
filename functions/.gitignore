@@ -13,3 +13,4 @@ node_modules/
 
 # Keys
 keys/
+*.env
