@@ -17,14 +17,6 @@ export const sendAdminInvite = functions.https.onCall(
     leagueName: string;
     ownerUsername: string;
   }) => {
-    const msg = {
-      to: "ziya.fenn@gmail.com", // Change to your recipient
-      from: "team@proclubs.zone", // Change to your verified sender
-      subject: "Sending with SendGrid is Fun",
-      // text: "and easy to do anywhere, even with Node.js",
-      html: "<strong>and easy to do anywhere, even with Node.js</strong>",
-    };
-
     try {
       const userRecord = await admin.auth().getUserByEmail(email);
 
@@ -36,6 +28,13 @@ export const sendAdminInvite = functions.https.onCall(
           expiresIn: "1h",
         }
       );
+      const msg = {
+        to: email, // Change to your recipient
+        from: "noreply@proclubs.zone", // Change to your verified sender
+        subject: `${ownerUsername} invites you to become an admin on PRZ`,
+        // text: "and easy to do anywhere, even with Node.js",
+        html: "",
+      };
 
       //const link = `http://0.0.0.0:5001/pro-clubs-zone-dev/us-central1/acceptAdmin?token=${token}`;
       const link = `https://us-central1-${process.env.GCLOUD_PROJECT}.cloudfunctions.net/acceptAdmin?token=${token}`;
