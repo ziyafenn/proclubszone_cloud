@@ -3,8 +3,6 @@ import * as admin from "firebase-admin";
 import { ClubInt } from "./utils/interface";
 const firebase_tools = require("firebase-tools");
 
-const logger = functions.logger;
-
 export const deleteLeague = functions
   .runWith({
     timeoutSeconds: 540,
@@ -18,8 +16,6 @@ export const deleteLeague = functions
       },
       context
     ) => {
-      logger.info("data", data);
-
       const firestore = admin.firestore();
       const batch = firestore.batch();
       const leagueId = data.leagueId;
@@ -27,53 +23,59 @@ export const deleteLeague = functions
       const isAdmin = context.auth && data.leagueOwnerId === ownerId;
       const firTools = firebase_tools.firestore;
       const users = firestore.collection("users");
-      const leagueClubs = await firestore
-        .collection("leagues")
-        .doc(leagueId)
-        .collection("clubs")
-        .get();
-      const path = `/leagues/${leagueId}`;
 
-      if (!isAdmin) {
-        throw new functions.https.HttpsError(
-          "permission-denied",
-          "Must be league admin to initiate delete."
-        );
+      let bucket = admin.storage().bucket();
+      if (process.env.GCLOUD_PROJECT !== "pro-clubs-zone-dev") {
+        bucket = admin.storage().bucket("prz-screen-shots");
       }
 
-      if (!leagueClubs.empty) {
-        leagueClubs.forEach((doc) => {
-          const club = doc.data() as ClubInt;
-          for (const memberId of Object.keys(club.roster)) {
-            const userRef = users.doc(memberId);
-            if (memberId !== data.leagueOwnerId) {
-              batch.update(userRef, {
-                ["leagues." + leagueId]: admin.firestore.FieldValue.delete(),
-              });
+      try {
+        const leagueClubs = await firestore
+          .collection("leagues")
+          .doc(leagueId)
+          .collection("clubs")
+          .get();
+        const path = `/leagues/${leagueId}`;
+
+        if (!isAdmin) {
+          throw new functions.https.HttpsError(
+            "permission-denied",
+            "Must be league admin to initiate delete."
+          );
+        }
+
+        if (!leagueClubs.empty) {
+          leagueClubs.forEach((doc) => {
+            const club = doc.data() as ClubInt;
+            for (const memberId of Object.keys(club.roster)) {
+              const userRef = users.doc(memberId);
+              if (memberId !== data.leagueOwnerId) {
+                batch.update(userRef, {
+                  ["leagues." + leagueId]: admin.firestore.FieldValue.delete(),
+                });
+              }
             }
-          }
-        });
-      }
-      const adminRef = users.doc(data.leagueOwnerId);
-      batch.update(adminRef, {
-        ["leagues." + leagueId]: admin.firestore.FieldValue.delete(),
-      });
-      return batch
-        .commit()
-        .then(async () => {
-          await firTools.delete(path, {
-            project: process.env.GCLOUD_PROJECT,
-            recursive: true,
-            yes: true,
-            //     token: functions.config().fb.token,
           });
-        })
-        .then(() => {
-          return "Success";
-        })
-        .catch((error) => {
-          console.log("something went wrong", error);
-          return "Something went wrong, please report";
+        }
+        const adminRef = users.doc(data.leagueOwnerId);
+        batch.update(adminRef, {
+          ["leagues." + leagueId]: admin.firestore.FieldValue.delete(),
         });
+
+        await Promise.all([
+          bucket.deleteFiles({ prefix: `${leagueId}/` }),
+          batch.commit(),
+        ]);
+
+        await firTools.delete(path, {
+          project: process.env.GCLOUD_PROJECT,
+          recursive: true,
+          yes: true,
+        });
+
+        return "Success";
+      } catch (error) {
+        throw new Error(error);
+      }
     }
   );
