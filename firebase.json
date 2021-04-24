@@ -7,15 +7,26 @@
     "predeploy": [
       "npm --prefix \"$RESOURCE_DIR\" run lint",
       "npm --prefix \"$RESOURCE_DIR\" run build"
-    ]
+    ],
+    "source": "functions"
   },
   "hosting": {
     "public": "public",
     "appAssociation": "AUTO",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
-      { "source": "/lgu/**", "dynamicLinks": true },
-      { "source": "/eml/**", "dynamicLinks": true }
+      {
+        "source": "/lgu/**",
+        "dynamicLinks": true
+      },
+      {
+        "source": "/eml/**",
+        "dynamicLinks": true
+      }
     ]
   },
   "storage": {
@@ -40,6 +51,9 @@
     },
     "ui": {
       "enabled": true
+    },
+    "pubsub": {
+      "port": 8085
     }
   },
   "remoteconfig": {
