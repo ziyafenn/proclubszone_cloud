@@ -87,14 +87,14 @@ export const conflictResolution = functions.https.onCall(
 
       batch.update(matchRef, submissionData);
 
-      if (!adminResolution) {
+      if (Object.keys(match.submissions!).length > 1) {
         batch.update(leagueRef, {
           conflictMatchesCount: admin.firestore.FieldValue.increment(-1),
         });
       }
 
       await batch.commit();
-      return !adminResolution ? "Conflict Resolved" : "Match Resolved";
+      return "Match Resolved";
     } catch (error) {
       logger.error(error);
       throw new Error(error);
