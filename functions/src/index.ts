@@ -8,6 +8,7 @@ import * as deleteUserLeague from "./deleteLeague";
 import * as removePlayerSubmission from "./removePlayerSubmission";
 import * as sendAdminInvite from "./adminInvites/sendAdminInvite";
 import * as acceptAdminInvite from "./adminInvites/acceptAdminInvite";
+import * as undoMatch from "./undoMatch";
 import * as backupFirestore from "./backup";
 
 admin.initializeApp();
@@ -19,4 +20,5 @@ export const deleteLeague = deleteUserLeague.deleteLeague;
 export const removeSubmission = removePlayerSubmission.removePlayerSubmission;
 export const inviteAdmin = sendAdminInvite.sendAdminInvite;
 export const acceptAdmin = acceptAdminInvite.acceptAdminInvite;
+export const undoPublishedMatch = undoMatch.undoMatch;
 export const backup = backupFirestore.backupFirestore;

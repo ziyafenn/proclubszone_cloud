@@ -43,7 +43,7 @@ export const matchSubmission = functions.https.onCall(
 
     if (submissionCorrect() && motmSubmissionCorrect()) {
       try {
-        const standings = await updateStandings(match, homeResult);
+        const standings = await updateStandings(match, homeResult, true);
         batch.update(standingsRef, {
           [homeTeamId]: standings[homeTeamId],
           [awayTeamId]: standings[awayTeamId],

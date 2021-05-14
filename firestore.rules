@@ -38,7 +38,7 @@ service cloud.firestore {
       allow update: if isAdmin();
       allow delete: if isOwner();
       allow update: if request.auth != null && (request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['acceptedClubs']));
+        .hasOnly(['acceptedClubs', 'clubIndex']));
       // Standings
       match /stats/standings {
         allow read: if request.auth != null;
@@ -72,7 +72,7 @@ service cloud.firestore {
         allow read: if true;
         allow create: if request.auth != null;
         allow update: if request.auth != null && request.auth.uid == resource.data.managerId || isAdmin();
-        allow delete: if request.auth != null && request.auth.uid == resource.data.managerId && isNotScheduled();
+        allow delete: if request.auth != null &&  isNotScheduled(); //request.auth.uid == resource.data.managerId &&
         allow delete: if isAdmin();
 
         // allow player to create entry in the club's roster

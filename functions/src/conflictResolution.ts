@@ -39,7 +39,7 @@ export const conflictResolution = functions.https.onCall(
     }
 
     try {
-      const standings = await updateStandings(match, result);
+      const standings = await updateStandings(match, result, true);
       batch.update(standingsRef, {
         [homeTeamId]: standings[homeTeamId],
         [awayTeamId]: standings[awayTeamId],
@@ -87,7 +87,7 @@ export const conflictResolution = functions.https.onCall(
 
       batch.update(matchRef, submissionData);
 
-      if (Object.keys(match.submissions!).length > 1) {
+      if (match.submissions && Object.keys(match.submissions).length > 1) {
         batch.update(leagueRef, {
           conflictMatchesCount: admin.firestore.FieldValue.increment(-1),
         });

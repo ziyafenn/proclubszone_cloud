@@ -101,7 +101,7 @@ export interface Match {
   published: boolean;
   conflict: boolean;
   motmConflict: boolean;
-  result?: { [team: string]: number };
+  result?: Submission;
   motm?: string;
   players?: { [id: string]: MatchPlayerData };
   submissionCount: number;

@@ -3,7 +3,8 @@ import * as admin from "firebase-admin";
 
 const updateStandings = async (
   data: MatchData,
-  result: Submission
+  result: Submission,
+  publish: boolean
 ): Promise<ClubStanding> => {
   const firestore = admin.firestore();
   const leagueRef = firestore.collection("leagues").doc(data.leagueId);
@@ -20,33 +21,45 @@ const updateStandings = async (
 
     const winUpd = (team: ClubStanding[string]) => {
       return {
-        won: team.won + 1,
-        points: team.points + 3,
+        won: publish ? team.won + 1 : team.won - 1,
+        points: publish ? team.points + 3 : team.points - 3,
       };
     };
     const drawUpd = (team: ClubStanding[string]) => {
       return {
-        draw: team.draw + 1,
-        points: team.points + 1,
+        draw: publish ? team.draw + 1 : team.draw - 1,
+        points: publish ? team.points + 1 : team.draw - 1,
       };
     };
 
     const defeatUpd = (team: ClubStanding[string]) => {
       return {
-        lost: team.lost + 1,
+        lost: publish ? team.lost + 1 : team.lost - 1,
       };
     };
 
     const updateGamesGoalsHome = {
-      played: homeTeamStanding.played + 1,
-      conceded: homeTeamStanding.conceded + awayResult,
-      scored: homeTeamStanding.scored + homeResult,
+      played: publish
+        ? homeTeamStanding.played + 1
+        : homeTeamStanding.played - 1,
+      conceded: publish
+        ? homeTeamStanding.conceded + awayResult
+        : homeTeamStanding.conceded - awayResult,
+      scored: publish
+        ? homeTeamStanding.scored + homeResult
+        : homeTeamStanding.scored - homeResult,
     };
 
     const updateGamesGoalsAway = {
-      played: awayTeamStanding.played + 1,
-      conceded: awayTeamStanding.conceded + homeResult,
-      scored: awayTeamStanding.scored + awayResult,
+      played: publish
+        ? awayTeamStanding.played + 1
+        : awayTeamStanding.played - 1,
+      conceded: publish
+        ? awayTeamStanding.conceded + homeResult
+        : awayTeamStanding.conceded - homeResult,
+      scored: publish
+        ? awayTeamStanding.scored + awayResult
+        : awayTeamStanding.scored - awayResult,
     };
 
     if (result[homeTeamId] > result[awayTeamId]) {
