@@ -10,6 +10,7 @@ import * as sendAdminInvite from "./adminInvites/sendAdminInvite";
 import * as acceptAdminInvite from "./adminInvites/acceptAdminInvite";
 import * as undoMatch from "./undoMatch";
 import * as backupFirestore from "./backup";
+import * as notifyOnNewLeague from "./notifyOnNewLeague";
 
 admin.initializeApp();
 
@@ -22,3 +23,4 @@ export const inviteAdmin = sendAdminInvite.sendAdminInvite;
 export const acceptAdmin = acceptAdminInvite.acceptAdminInvite;
 export const undoPublishedMatch = undoMatch.undoMatch;
 export const backup = backupFirestore.backupFirestore;
+export const notify = notifyOnNewLeague.notifyOnNewLeague;
