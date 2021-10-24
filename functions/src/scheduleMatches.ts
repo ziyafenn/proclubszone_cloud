@@ -11,16 +11,63 @@ type ClubProps = {
 type DataProps = {
   leagueId: string;
   matchNum: number;
+  acceptedClubs: number;
+  teamNum: number;
 };
 
 export const scheduleMatches = functions.https.onCall(
   async (data: DataProps, context) => {
     const firestore = admin.firestore();
-    const batch = firestore.batch();
+    let batch = firestore.batch();
     const leagueId: string = data.leagueId;
     const acceptedClubsIds: string[] = [];
     const acceptedClubs: ClubProps[] = [];
     const leagueRef = firestore.collection("leagues").doc(leagueId);
+
+    const createBotTeam = (index: string) => {
+      const userRef = firestore.collection("users").doc(`bot${index}`);
+      const clubRef = leagueRef.collection("clubs").doc();
+      const botClub: ClubInt = {
+        name: `PRZ Bot ${index}`,
+        accepted: true,
+        created: admin.firestore.Timestamp.now(),
+        managerId: userRef.id,
+        leagueId: leagueId,
+        managerUsername: `PRZ Bot ${index}`,
+        roster: {
+          [userRef.id]: {
+            accepted: true,
+            username: `PRZ Bot ${index}`,
+          },
+        },
+      };
+
+      const botManager = {
+        premium: false,
+        username: `PRZ Bot ${index}`,
+        leagues: {
+          [leagueId]: {
+            accepted: true,
+            clubId: clubRef.id,
+            clubName: `PRZ Bot ${index}`,
+            manager: true,
+          },
+        },
+      };
+
+      batch.set(userRef, botManager, { merge: true });
+      batch.set(clubRef, botClub);
+      batch.set(
+        leagueRef,
+        {
+          acceptedClubs: admin.firestore.FieldValue.increment(1),
+          clubIndex: {
+            [clubRef.id]: `PRZ Bot ${index}`,
+          },
+        },
+        { merge: true }
+      );
+    };
 
     const getTeams = async () => {
       const query = leagueRef.collection("clubs").where("accepted", "==", true);
@@ -87,6 +134,15 @@ export const scheduleMatches = functions.https.onCall(
     };
 
     try {
+      if (data.acceptedClubs < data.teamNum) {
+        const missingClubs = data.teamNum - data.acceptedClubs;
+        for (let i = 0; i < missingClubs; i++) {
+          createBotTeam((i + 1).toString());
+        }
+
+        await batch.commit();
+        batch = firestore.batch();
+      }
       await getTeams();
       createMatches();
       createStandings();

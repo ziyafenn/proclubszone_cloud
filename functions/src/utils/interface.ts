@@ -42,13 +42,15 @@ export interface OutfieldPlayerStats extends CommonPlayerStats {
 }
 
 export interface ClubInt {
+  leagueId: string;
+  managerUsername: string;
   name: string;
   managerId: string;
   accepted: boolean;
   roster: {
     [uid: string]: ClubRosterMember;
   };
-  created: string;
+  created: any;
 }
 
 export interface ClubRosterMember {
